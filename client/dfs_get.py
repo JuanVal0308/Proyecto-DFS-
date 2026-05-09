@@ -21,16 +21,50 @@ with open(output_file, "wb") as outfile:
     for block in blocks:
 
         block_id = block["block_id"]
-        datanode_url = block["datanode_url"]
 
-        print(f"Downloading {block_id}...")
+        replicas = block["replicas"]
 
-        block_response = requests.get(
-            f"{datanode_url}/block/{block_id}"
-        )
+        downloaded = False
 
-        outfile.write(
-            block_response.content
-        )
+        for replica_url in replicas:
 
-print(f"File reconstructed: {output_file}")
+            try:
+
+                print(
+                    f"Trying {block_id} from {replica_url}"
+                )
+
+                block_response = requests.get(
+                    f"{replica_url}/block/{block_id}",
+                    timeout=3
+                )
+
+                if block_response.status_code == 200:
+
+                    outfile.write(
+                        block_response.content
+                    )
+
+                    print(
+                        f"Success from {replica_url}"
+                    )
+
+                    downloaded = True
+
+                    break
+
+            except Exception as e:
+
+                print(
+                    f"Replica failed: {replica_url}"
+                )
+
+        if not downloaded:
+
+            raise Exception(
+                f"All replicas failed for {block_id}"
+            )
+
+print(
+    f"File reconstructed: {output_file}"
+)

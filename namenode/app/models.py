@@ -4,7 +4,7 @@ from typing import List
 class BlockMetadata(BaseModel):
 
     block_id: str
-    datanode_url: str
+    replicas: List[str]
 
 class FileMetadata(BaseModel):
 

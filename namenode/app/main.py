@@ -108,7 +108,7 @@ def register_file(file: FileMetadata):
         "blocks": [
             {
                 "block_id": block.block_id,
-                "datanode_url": block.datanode_url
+                "replicas": block.replicas
             }
             for block in file.blocks
         ]
@@ -145,27 +145,29 @@ def allocate_file(
 
     blocks = []
 
+    total_nodes = len(DATANODES)
+
     for i in range(num_blocks):
 
         block_id = f"{filename}_block{i}"
 
-        datanode_url = DATANODES[
-            i % len(DATANODES)
+        primary = DATANODES[
+            i % total_nodes
+        ]
+
+        replica = DATANODES[
+            (i + 1) % total_nodes
         ]
 
         blocks.append({
             "block_id": block_id,
-            "datanode_url": datanode_url
+            "replicas": [
+                primary,
+                replica
+            ]
         })
 
     return {
         "filename": filename,
         "blocks": blocks
-    }
-
-@app.get("/health")
-def health():
-
-    return {
-        "health": "ok"
     }
